@@ -1,0 +1,35 @@
+services:
+  engine:
+    build: {context: ., dockerfile: docker/Dockerfile.engine}
+    restart: always
+    env_file: .env
+    command: celery -A services.engine.worker worker -Q titan_queue -c 8 -l INFO
+    volumes: ['./data/artifacts:/app/data/artifacts']
+    networks: [titan_net]
+  api:
+    build: {context: ., dockerfile: docker/Dockerfile.engine}
+    restart: always
+    ports: ["8003:8000"]
+    env_file: .env
+    command: uvicorn services.api.main:app --host 0.0.0.0 --port 8000
+    networks: [titan_net]
+  dashboard:
+    build: {context: ., dockerfile: docker/Dockerfile.dashboard}
+    restart: always
+    ports: ["8501:8501"]
+    env_file: .env
+    command: streamlit run services/dashboard/dashboard.py --server.port 8501 --server.address 0.0.0.0
+    volumes: ['./data/artifacts:/app/data/artifacts']
+    networks: [titan_net]
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment: {POSTGRES_USER: titan, POSTGRES_PASSWORD: forge_password, POSTGRES_DB: titan_core}
+    volumes: [pg_data:/var/lib/postgresql/data]
+    networks: [titan_net]
+  redis:
+    image: redis:7-alpine
+    restart: always
+    networks: [titan_net]
+volumes: {pg_data: {}}
+networks: {titan_net: {}}
