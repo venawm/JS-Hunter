@@ -22,9 +22,9 @@ Unlike traditional scanners that rely solely on "grep-like" pattern matching, JS
 
 ---
 
-## 🎯 Key Capabilities
+## Key Capabilities
 
-### 🧠 Deep Taint Analysis
+### Deep Taint Analysis
 JS Hunter tracks data flow to distinguish between safe code and actual exploits.
 - **Source-to-Sink Tracking:** Follows user input (`req.query`, `location.hash`) as it flows through variables, string concatenation, and assignments into dangerous sinks (`eval`, `innerHTML`, `exec`).
 - **Sanitizer Awareness:** Automatically detects if a variable has passed through a known sanitizer (e.g., `DOMPurify`), marking it as safe.
@@ -43,7 +43,7 @@ Built-in context awareness for modern stacks:
 - **Angular:** Detects `$sce.trustAsHtml` bypasses.
 - **Node.js:** Detects SSRF, Command Injection, and NoSQL Injection.
 
-### 🔐 High-Entropy Secret Scanning
+### High-Entropy Secret Scanning
 Goes beyond simple keywords to validate credentials:
 - **Cloud Keys:** AWS (Access/Secret), Google Cloud, Azure.
 - **Payment:** Stripe (Live vs Test), PayPal, Square.
@@ -52,7 +52,7 @@ Goes beyond simple keywords to validate credentials:
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 JS Hunter runs as a distributed asynchronous task engine using **Celery** and **Redis**.
 
@@ -94,7 +94,7 @@ JS Hunter runs as a distributed asynchronous task engine using **Celery** and **
 
 ---
 
-## 🏃 Usage
+##  Usage
 
 ### 1. Start the Worker
 Start the Celery worker to listen for scanning tasks.
@@ -138,7 +138,7 @@ JS Hunter covers over **20 vulnerability categories**.
 
 ---
 
-## 🧠 Why JS Hunter?
+## Why JS Hunter?
 
 **The Scenario:**
 ```javascript
@@ -150,12 +150,12 @@ function updateProfile(req) {
 }
 ```
 
-*   **Traditional Regex Scanner:** 🚨 **FALSE POSITIVE.** Sees `innerHTML = html` and flags it, ignoring the sanitizer.
-*   **JS Hunter:** ✅ **CLEAN.** Detects the `sanitize` function call in the flow and marks the variable as safe.
+*   **Traditional Regex Scanner:** **FALSE POSITIVE.** Sees `innerHTML = html` and flags it, ignoring the sanitizer.
+*   **JS Hunter:** **CLEAN.** Detects the `sanitize` function call in the flow and marks the variable as safe.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions!
 1.  **Add Patterns:** Update `RAW_PATTERNS` in `js_hunter.py`.
