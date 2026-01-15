@@ -22,13 +22,15 @@ services:
     volumes: ['./data/artifacts:/app/data/artifacts']
     networks: [titan_net]
   db:
-    image: postgres:15-alpine
+    # FIXED: Added docker.io/library/ to resolve "short-name" error
+    image: docker.io/library/postgres:15-alpine
     restart: always
     environment: {POSTGRES_USER: titan, POSTGRES_PASSWORD: forge_password, POSTGRES_DB: titan_core}
     volumes: [pg_data:/var/lib/postgresql/data]
     networks: [titan_net]
   redis:
-    image: redis:7-alpine
+    # FIXED: Added docker.io/library/ to resolve "short-name" error
+    image: docker.io/library/redis:7-alpine
     restart: always
     networks: [titan_net]
 volumes: {pg_data: {}}
