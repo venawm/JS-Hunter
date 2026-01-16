@@ -6,6 +6,8 @@ import { fetchSourceCode } from '@/lib/api';
 export function SourceViewer({ domain, filename }: { domain: string; filename: string }) {
   const [code, setCode] = useState('Loading...');
 
+  console.log(domain,filename)
+
   useEffect(() => {
     if (!domain || !filename) return;
     fetchSourceCode(domain, filename).then(d => setCode(d.content || '// Empty file')).catch(() => setCode('// Error loading file'));

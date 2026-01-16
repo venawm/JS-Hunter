@@ -1,4 +1,19 @@
 services:
+  # OPTIONAL: Only run this manually when you need to initialize DB
+  # Usage: podman-compose run --rm init-db
+  init-db:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.engine
+    env_file: .env
+    command: python core/db/init_db.py
+    networks: 
+      - titan_net
+    depends_on:
+      - db
+    profiles:
+      - tools  # This prevents it from running automatically
+
   engine:
     build: 
       context: .

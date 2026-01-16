@@ -1,7 +1,7 @@
-import os, json, re, math, time, hashlib
+import os, json, re, math, time, hashlib, zlib
 from celery import Celery
 from core.db.session import SessionLocal
-from core.db.models import Target, Asset, Finding
+from core.db.models import Target, Asset, Finding, SourceFile
 
 # Initialize Celery
 app = Celery("titan", broker=os.getenv("REDIS_URL"), backend=os.getenv("REDIS_URL"))
@@ -712,17 +712,23 @@ def detect_vulnerability_chains(previous_lines, current_line, line_num):
 def process_file(domain, filename, code):
     """Enterprise-grade file scanning with advanced vulnerability detection"""
     db = SessionLocal()
-    
-    try:
-        # Setup
-        scan_dir = "/tmp/titan_scans"
-        os.makedirs(scan_dir, exist_ok=True)
-        
-        asset_path = os.path.join(scan_dir, f"scan_{int(time.time())}_{hashlib.md5(filename.encode()).hexdigest()[:8]}.js")
-        with open(asset_path, "w", encoding="utf-8", errors="ignore") as f_out:
-            f_out.write(code)
 
-        # Database setup
+    try:
+        # --- 1. SMART STORAGE: HASH & COMPRESS ---
+        # Generate SHA256 hash for deduplication
+        file_hash = hashlib.sha256(code.encode('utf-8')).hexdigest()
+        
+        # Check if source already exists (Deduplication)
+        source_exists = db.query(SourceFile).filter_by(hash=file_hash).first()
+        
+        if not source_exists:
+            # Compress code to save space
+            compressed_content = zlib.compress(code.encode('utf-8'))
+            new_source = SourceFile(hash=file_hash, content_compressed=compressed_content)
+            db.add(new_source)
+            db.commit()
+
+        # --- 2. DATABASE SETUP ---
         target = db.query(Target).filter_by(domain=domain).first()
         if not target:
             target = Target(domain=domain)
@@ -730,14 +736,17 @@ def process_file(domain, filename, code):
             db.commit()
             db.refresh(target)
 
-        asset = Asset(target_id=target.id, url=filename, local_path=asset_path)
+        # Create Asset linked to the Source Hash
+        asset = Asset(
+            target_id=target.id, 
+            url=filename, 
+            source_hash=file_hash
+        )
         db.add(asset)
         db.commit()
         db.refresh(asset)
 
-        # Load file
-        with open(asset_path, "r", encoding="utf-8", errors="ignore") as f:
-            all_lines = f.readlines()
+        all_lines = code.splitlines()
         
         print(f"🔍 Scanning {filename} ({len(all_lines)} lines)")
         
@@ -882,8 +891,8 @@ def process_file(domain, filename, code):
         
         # Statistics
         total_findings = len(seen_findings)
-        critical_count = sum(1 for f in findings_buffer if f.severity == "CRITICAL")
-        high_count = sum(1 for f in findings_buffer if f.severity == "HIGH")
+        critical_count = db.query(Finding).filter_by(asset_id=asset.id, severity="CRITICAL").count()
+        high_count = db.query(Finding).filter_by(asset_id=asset.id, severity="HIGH").count()
         
         print(f"✅ Completed {filename}")
         print(f"   Total Findings: {total_findings}")
@@ -896,12 +905,6 @@ def process_file(domain, filename, code):
         db.rollback()
     finally:
         db.close()
-        # Clean up temp file
-        if 'asset_path' in locals() and os.path.exists(asset_path):
-            try:
-                os.remove(asset_path)
-            except:
-                pass
 
 if __name__ == "__main__":
     app.start()

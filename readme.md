@@ -65,7 +65,7 @@ JS Hunter runs as a distributed asynchronous task engine using **Celery** and **
 
 ---
 
-## 🛠️ Installation
+##  Installation
 
 ### Prerequisites
 - Python 3.9+
@@ -122,7 +122,7 @@ process_file.delay("target.com", "vulnerable_handler.js", code_snippet)
 
 ---
 
-## 📊 Detection Capabilities
+## Detection Capabilities
 
 JS Hunter covers over **20 vulnerability categories**.
 
@@ -162,7 +162,7 @@ We welcome contributions!
 2.  **Add Sinks:** Update `DANGEROUS_SINKS` list.
 3.  **Improve Context:** Modify `analyze_context_flow` to support new libraries.
 
-## 📄 License
+## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License.
 ```
