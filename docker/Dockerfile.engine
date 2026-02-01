@@ -1,5 +1,37 @@
 FROM python:3.10-slim
-RUN apt-get update && apt-get install -y gcc libpq-dev
-RUN pip install celery redis requests sqlalchemy psycopg2-binary fastapi uvicorn
+
+# 1. Install System Dependencies
+# 'build-essential' and 'gcc' are REQUIRED to compile tree-sitter
+# 'libpq-dev' is REQUIRED for psycopg2 (PostgreSQL)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Install Python Dependencies directly
+# We use quotes "" for packages with > symbols to prevent shell interpretation issues
+RUN pip install --no-cache-dir \
+    # --- Infrastructure ---
+    "celery>=5.3.0" \
+    "redis>=4.5.0" \
+    "sqlalchemy>=2.0.0" \
+    psycopg2-binary \
+    fastapi \
+    uvicorn \
+    requests \
+    python-dotenv \
+    # --- Titan V6 Engine ---
+    "tree-sitter>=0.21.0" \
+    "tree-sitter-javascript>=0.21.0" \
+    "tree-sitter-typescript>=0.21.0" \
+    "jsbeautifier>=1.14.0" \
+    "networkx>=3.0"
+
 WORKDIR /app
+
+# 3. Copy Codebase
 COPY . .
+
+# 4. Set Python Path
+ENV PYTHONPATH=/app

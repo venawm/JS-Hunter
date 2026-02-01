@@ -1,0 +1,17 @@
+# TITAN V6 - God Mode Exploit Discovery Engine
+
+# Tree-sitter (100x faster queries)
+tree-sitter>=0.21.0
+tree-sitter-javascript>=0.21.0
+tree-sitter-typescript>=0.21.0
+
+# Code beautification
+jsbeautifier>=1.14.0
+
+# Graph analysis
+networkx>=3.0
+
+# Production
+celery>=5.3.0
+redis>=4.5.0
+sqlalchemy>=2.0.0
